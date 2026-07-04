@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Test reports
+reports/*.audit.json
+*.tmp
+*.bak
+
+# Secrets (never commit!)
+.env
+*.pem
+credentials.json
+
+# OS
+Thumbs.db
