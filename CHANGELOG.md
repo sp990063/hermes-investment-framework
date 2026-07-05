@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`ipo-catalyst-analysis` skill** — specialised framework for newly-listed (< 12 months) + catalyst-driven + low free float IPO stocks. Based on `investment-research` but adds: catalyst timeline analysis, P/ARR three-scenario valuation, free float risk premium, 5-way peer comparison, v1 → v2.0 correction pattern. See `skills/ipo-catalyst-analysis/SKILL.md` and `examples/reports/2026-07-05-智譜GLM-deep-dive.md` for reference output.
+
+### Fixed
+- Example report (`examples/reports/2026-07-05-智譜GLM投資研究報告.md`) fact check:
+  - Line 195: Sam Altman → Mark Zuckerberg / Yann LeCun (Meta Llama team, not OpenAI CEO)
+  - Lines 348-356: Added "AI 模擬" disclaimer to investment master quotes (Buffett / Munger / Duan / Li Lu quotes are AI-simulated perspectives, not real attributions)
+
 ## [1.0.0] - 2026-07-05
 
 ### Added

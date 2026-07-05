@@ -25,12 +25,13 @@ The original framework runs on Claude Code Agent Teams. This port adapts it to *
 
 ## What's included
 
-### 📚 19 Skills (in `skills/`)
+### 📚 20 Skills (in `skills/`)
 Organised by use case:
 
-**Tier 1 — Core research (4 skills)**
+**Tier 1 — Core research (5 skills)**
 - `investment-research` — single-company sequential deep-dive (7-module framework)
 - `investment-team` — multi-perspective team analysis (parallel subagents)
+- **`ipo-catalyst-analysis` — IPO < 12 月 + catalyst-driven + 流通量低嘅 specialised framework**
 - `private-company-research` — pre-IPO / non-listed companies
 - `management-deep-dive` — CEO/founder quality assessment
 
