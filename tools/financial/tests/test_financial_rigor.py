@@ -138,6 +138,90 @@ except Exception as e:
     print(f"  ❌ JSON parse failed: {e}")
 
 # ---------------------------------------------------------------------------
+# 4b. three-scenario-pe (P/E-based, for profitable companies)
+# ---------------------------------------------------------------------------
+print("\n=== three-scenario-pe ===")
+
+# Test 4b.1: 鱘龍科技 (06715.HK) realistic scenario — profitable luxury food
+# Price HK$114, EPS HK$2.40 (= RMB 2.20 × 1.09 HKD/RMB), growth 18/10/5%, PE 35/25/18, 3 years
+rc, out, err = run(["python3", FR, "three-scenario-pe",
+                     "--price", "114", "--eps", "2.40", "--shares", "163",
+                     "--growth", "0.18", "0.10", "0.05",
+                     "--pe", "35", "25", "18",
+                     "--years", "3", "--currency", "HKD"])
+check("4b.1 鱘龍科技 P/E three-scenario runs", rc == 0, f"rc={rc} err={err[:200]}")
+try:
+    j = json.loads(out)
+    check("4b.2 current_pe computed", Decimal(j["current_pe"]) == Decimal("47.50"),
+          f"got {j['current_pe']} (expected 47.50)")
+    check("4b.3 use_case tagged", "profitable" in j["use_case"], f"got {j['use_case']}")
+    bull = j["scenarios"][0]
+    base = j["scenarios"][1]
+    bear = j["scenarios"][2]
+    # Bull: 2.40 × 1.18^3 × 35 = 2.40 × 1.643032 × 35 = 138.025... quantized to 138.02
+    check(f"4b.4 Bull target ≈ 138.02", Decimal(bull["target_price"]) in (Decimal("138.02"), Decimal("138.03")),
+          f"got {bull['target_price']}")
+    # Base upside should be negative (~-30%)
+    check(f"4b.5 Base upside negative (~-30%)", Decimal(base["upside_pct"].rstrip("%")) < -25,
+          f"got {base['upside_pct']}")
+    # Bear upside should be very negative (~-56%)
+    check(f"4b.6 Bear upside very negative (~-56%)", Decimal(bear["upside_pct"].rstrip("%")) < -50,
+          f"got {bear['upside_pct']}")
+except Exception as e:
+    failed += 5
+    print(f"  ❌ JSON parse failed: {e}")
+
+# Test 4b.7: Loss-making EPS → should reject (exit 2)
+rc, out, err = run(["python3", FR, "three-scenario-pe",
+                     "--price", "100", "--eps", "-5", "--shares", "1000",
+                     "--growth", "0.15", "0.10", "0.05",
+                     "--pe", "25", "18", "12",
+                     "--years", "3", "--currency", "HKD"], expect_exit=2)
+check("4b.7 Loss-making EPS rejected", rc == 2, f"rc={rc} err={err[:200]}")
+
+# Test 4b.8: Tencent realistic scenario — profitable mega-cap
+rc, out, err = run(["python3", FR, "three-scenario-pe",
+                     "--price", "510", "--eps", "30", "--shares", "9110",
+                     "--growth", "0.12", "0.08", "0.04",
+                     "--pe", "20", "16", "12",
+                     "--years", "3", "--currency", "HKD"])
+check("4b.8 Tencent P/E three-scenario runs", rc == 0, f"rc={rc}")
+try:
+    j = json.loads(out)
+    check(f"4b.9 Tencent current_pe = 17.00", Decimal(j["current_pe"]) == Decimal("17.00"),
+          f"got {j['current_pe']}")
+except Exception as e:
+    failed += 1
+
+# ---------------------------------------------------------------------------
+# 4c. three-scenario-pb (P/B-based, for financial companies)
+# ---------------------------------------------------------------------------
+print("\n=== three-scenario-pb ===")
+
+# Test 4c.1: Bank realistic scenario — profitable but book-value driven
+rc, out, err = run(["python3", FR, "three-scenario-pb",
+                     "--price", "30", "--bvps", "25", "--shares", "10000",
+                     "--growth", "0.10", "0.06", "0.02",
+                     "--pb", "1.5", "1.2", "0.9",
+                     "--years", "3", "--currency", "HKD"])
+check("4c.1 Bank P/B three-scenario runs", rc == 0, f"rc={rc}")
+try:
+    j = json.loads(out)
+    check(f"4c.2 current_pb = 1.20", Decimal(j["current_pb"]) == Decimal("1.20"),
+          f"got {j['current_pb']}")
+    check("4c.3 use_case tagged for financial", "financial" in j["use_case"], f"got {j['use_case']}")
+except Exception as e:
+    failed += 2
+
+# Test 4c.4: Zero/negative BVPS → reject
+rc, out, err = run(["python3", FR, "three-scenario-pb",
+                     "--price", "30", "--bvps", "-5", "--shares", "10000",
+                     "--growth", "0.10", "0.06", "0.02",
+                     "--pb", "1.5", "1.2", "0.9",
+                     "--years", "3", "--currency", "HKD"], expect_exit=2)
+check("4c.4 Negative BVPS rejected", rc == 2, f"rc={rc}")
+
+# ---------------------------------------------------------------------------
 # 5. benford
 # ---------------------------------------------------------------------------
 print("\n=== benford ===")

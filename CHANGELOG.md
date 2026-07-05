@@ -16,11 +16,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Line 195: Sam Altman → Mark Zuckerberg / Yann LeCun (Meta Llama team, not OpenAI CEO)
   - Lines 348-356: Added "AI 模擬" disclaimer to investment master quotes (Buffett / Munger / Duan / Li Lu quotes are AI-simulated perspectives, not real attributions)
 
-### Skill v1.1 Improvements (proposed based on MiniMax v3.0 lesson)
-- **Step 2.5 Comprehensive News Scan** — every refresh does a fresh scan, not incremental update
-- **Step 6.5 Major Version Detection** — model major version changes must be flagged within 24 hours
-- **Step 7.5 Competitor Parallel Tracking** — competitor model versions parallel tracked
-- **Step 9.5 v(n) → v(n+1) Audit Trail** — every correction must explicitly list missed catalysts
+### Skill v1.2 Improvements (applied based on 鱘龍科技 case)
+- **Step 0 — Industry-Specific Framework Selection** — added critical rule: don't apply AI framework (P/ARR + catalyst) blindly to non-AI stocks. Different industries need different valuation methods:
+  - AI/Tech (loss-making): P/ARR + OpenAI/Anthropic comparables
+  - Consumer/Food (profitable): P/E + DCF + comparable P/E
+  - Financial/Insurance: P/B + embedded value + ROE
+  - Real Estate: NAV + P/B
+  - Biotech: pipeline NPV + risk-adjusted sales
+- **Step 3.5 — Multi-Source Fact-Table Format** — every key fact must be tabulated with 3 sources; explicit ⚠️ markers for single-source / estimated / conflicting data
+- **Step 6.5 — Comprehensive Catalyst Re-Scan** — for IPO < 12 months, every refresh must do a fresh news scan (not incremental update); model major version changes must be flagged within 24 hours
+- **Step 9.5 — Fact Check Self-Audit** — 5 audit rules before publishing:
+  1. List unverified critical data explicitly
+  2. Estimated vs verified explicit classification
+  3. Disclose same-metric multi-source differences
+  4. Verify CEO/founder attribution
+  5. Strip currency/commas from report_audit.py verdict
+
+### `financial_rigor.py` v1.2 Improvements
+- **`three-scenario-pe`** — new command for profitable companies (P/E-based). Use instead of `three-scenario` for consumer / financial / traditional industries
+- **`three-scenario-pb`** — new command for financial companies (P/B-based). Use for banks / insurers / brokers
+- Both reject loss-making inputs (EPS ≤ 0 for PE, BVPS ≤ 0 for PB) with helpful error messages
+- Tagged `use_case` field in JSON output to clarify when to use each command
+- Tests expanded: 31 → 44 (added 13 new test cases for PE/PB scenarios)
 
 ## [1.0.0] - 2026-07-05
 

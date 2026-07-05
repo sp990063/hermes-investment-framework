@@ -20,9 +20,9 @@ description: 針對新上市(< 12 個月)+ catalyst-driven + 流通量低嘅 IPO
 | 維度 | `investment-research` | `ipo-catalyst-analysis`(本 skill) |
 |---|---|---|
 | **適用對象** | 任何已上市公司 | **IPO < 12 個月** + catalyst pipeline active |
-| **估值方法** | P/E + DCF + 安全邊距 | **P/ARR + 流通量風險 premium** + 安全邊距 |
+| **估值方法** | P/E + DCF + 安全邊距 | **P/ARR(AI 股)or P/E(傳統股)+ 流通量風險 premium** + 安全邊距 |
 | **歷史財務** | 5-10 年歷史 | **0-3 年(招股書)** |
-| **Catalyst 分析** | 季度業績 / 行業趨勢 | **完整 catalyst timeline + priced-in 分析** |
+| **Catalyst 分析** | 季度業績 / 行業趨勢 | **完整 catalyst timeline + priced-in 分析 + Step 6.5 comprehensive re-scan** |
 | **流通量風險** | 唔特別處理 | **MUST analyze**(MiniMax -68% 前車之鑑) |
 | **對標 framework** | 同業上市公司 | **同業上市 + 同業未上市(OpenAI / Anthropic / DeepSeek)** |
 | **Decision framework** | Buy / Hold / Sell | **Wait for pullback / Buy on dip / 觀望** + 具體回調價位 |
@@ -30,6 +30,43 @@ description: 針對新上市(< 12 個月)+ catalyst-driven + 流通量低嘅 IPO
 ---
 
 ## 框架 9 個 Step
+
+### Step 0 — 🔴 Industry-Specific Framework Selection(由 鱘龍科技 case 提煉,2026-07-05)
+
+**Universal rule**:唔可以將 AI 股 framework(P/ARR + catalyst pipeline)盲目應用落非 AI 股。一個 framework fit-all 通常**會出 critical valuation error**。
+
+**Industry-specific framework 指引**(Step 0 之前必做):
+
+| 行業 | 估值方法 | 核心 KPIs | 特殊風險點 |
+|---|---|---|---|
+| **AI / Tech / 高增長**(智譜 / MiniMax)| P/ARR + 退出倍數對標 OpenAI/Anthropic/DeepSeek | ARR / token 量 / MAU / API revenue / 開源 stars | catalyst pipeline + 流通量 + 推理成本變化 |
+| **傳統消費 / Luxury food**(鱘龍科技 / 高端餐飲)| **P/E + DCF + 同業 P/E 對標** | **收入 / 淨利潤 / 毛利率 / 市佔率 / 銷售渠道** | **生物資產公允價值波動** + 消費下行 + 關稅 |
+| **金融 / 保險 / 銀行** | P/B + 內含價值(EV)+ ROE | AUM / 淨息差 / 不良率 / 償付能力 | 利率 + 信貸週期 + 監管 |
+| **地產** | NAV + 股息率 + P/B | 土地儲備 / 銷售面積 / 淨負債率 / 銷售均價 | 政策調控 + 流動性 + 利率 |
+| **生物科技 / 創新藥** | pipeline NPV + 風險調整後銷售 | clinical phase / FDA approval / peak sales estimate | clinical 失敗 + FDA 延遲 + 競爭 |
+| **能源 / 資源** | P/E + 油價 / 商品價 + 儲量倍數 | 儲量 / 產量 / 邊際成本 / 商品價格 path | 商品週期 + ESG + OPEC 政策 |
+| **公用事業 / 電力** | DCF + 股息率 + 監管 ROA | 裝機容量 / 利用小時 / 上網電價 / ROA | 監管 + 補貼變化 + 利率 |
+
+**鱘龍科技 case 嘅 critical lesson**(2026-07-05):
+- 嗰 case 係 **luxury food(已盈利,46% 淨利率)** — 唔係 AI 嘅虧損場景
+- 我**原本**想用 AI framework(P/ARR)— 但會**完全錯**(因為已經盈利 + 業務穩定)
+- 改用 **P/E + 同業對標**先至啱
+- **如果用 P/ARR 落 luxury food 公司**,**會做錯估值因為認列營收 vs 訂閱收入嘅性質唔同**
+
+**Trigger rule**:在任何 deep-dive 開始之前,**先做 industry check**(1 web_search query 就夠):
+```
+[公司名] + [行業關鍵詞] + 估值方法
+```
+例如:
+- 「智譜 AI 大模型 ARR 估值方法」
+- 「鱘龍科技 魚子醬 P/E 對標」
+- 「銀行股 PB 估值方法」
+
+**Anti-pattern**:對**任何行業一律用 P/E + DCF** 太 generic;對**任何 early-stage 一律用 P/ARR** 太 biased。要**行業 specific**。
+
+詳細 case 見 `references/case-study-2026-07-鱘龍科技-06715.md`。
+
+---
 
 ### Step 1 — 前置:AI 偏見自覺
 
@@ -92,6 +129,28 @@ description: 針對新上市(< 12 個月)+ catalyst-driven + 流通量低嘅 IPO
 - 最近 4 個季度營收 + 經調整虧損
 - 任何 ARR 披露
 - 任何 catalyst event + 股價反應
+
+### Step 3.5 — 🔴 Multi-Source Fact-Table Format(由 智譜GLM 例子教訓,2026-07-05)
+
+**Universal rule**(對所有 ipo deep-dive 都必須用):**每個關鍵事實必須表格化,列 source 1/2/3**。
+
+**Template**(每個關鍵事實用呢個 table format):
+
+| 數據點 | 數值 | Source 1 | Source 2 | Source 3 | Fact check 結果 |
+|---|---|---|---|---|---|
+| 公司全名 | XXX | link1 | link2 | link3 | ✅ 一致 / ⚠️ 衝突 |
+
+**Fact Check 規則**:
+- ✅ **一致**:3 source 都報同一個數字 → ✅ verified
+- ⚠️ **衝突**:source 報唔同數字 → ⚠️ 公開 disclose,**揀高精度版本**(e.g. 36.1% 而非 35%)
+- ⚠️ **單一 source**:只有 1 個 source → ⚠️ explicit 標記「需查第二 source」
+- ⚠️ **估算**:冇直接 source,用計算 / 估算 → ⚠️ 標「estimated」
+
+**鱘龍科技 fact check 啟示**(2026-07-05):
+- 同一個 metric(2025 市佔率)2 source 報唔同(36.1% hket vs 35% 香港商報)→ 必須 disclose + 解釋(rounded vs precise)
+- 估計總股本(163M based on H 股 10%)→ 必須 explicit 標記「估算,需查招股書」
+
+**Anti-pattern**:寫「公司市佔率 36.1%」無 source → 報告 complete fail transparency check。
 
 ---
 
@@ -167,7 +226,9 @@ Annual turnover / free float = turnover ratio
 - **Round 2**: IPO 後第 2-6 個月(基於 Q1 業績 + 完整 catalyst timeline)
 - **Round 3**: IPO 後第 6-12 個月(基於 Q2 業績 + valuation 修正)
 
-**每次 refresh 必須檢查**:
+每次 refresh 都**必須跟足 Step 6.5**(下)嘅 comprehensive scan — incremental update 由 v1 加 1-2 個 catalyst 唔夠。
+
+每次 refresh 必須檢查:
 
 1. **股價 vs 之前估值**:股價升咗 / 跌咗幾多?之前嘅估值仲準唔準?
 2. **Catalyst 兌現率**:預期 catalyst 實現咗幾多?修正下次 catalyst 預期
@@ -175,10 +236,72 @@ Annual turnover / free float = turnover ratio
 4. **管理層誠信 check**:有冇減持 / 內幕交易 / 重大失誤?
 5. **行業趨勢**:AI / 新能源 / SaaS 等行業有冇 structural change?
 
-**Critical 警示**:
+Critical 警示:
 - ⚠️ **Round 1 嘅 analysis 唔可以直接用 6 個月後**(可能完全 outdated)
 - ⚠️ **每次 v1 → v2 必須清楚標記咩 update 咗**
 - ⚠️ **如果 Round 2 完全推翻 Round 1 結論,要明確標注「結論翻轉」**
+- 🔴 **唔可以做 incremental-only update** — 必須做 Step 6.5 comprehensive re-scan
+
+### Step 6.5 — 🔴 Comprehensive Catalyst Re-Scan(對 IPO < 12 個月係 hard requirement)
+
+**由 `2026-07-05 MiniMax v2.0 missed M3 catalyst` 嘅 failure case 提煉:**
+
+呢個 step 嘅存在係**因為增量更新容易 miss critical events**。我嘅 MiniMax v2.0 報告完全 miss 咗 **MiniMax M3**(2026-06-01 發布)+ **智譜 GLM-5.2 開源**(2026-06-17)+ **智譜 GLM-5.1 SWE-Bench Pro 58.4**(2026 年初已發布)— 三個 major catalyst 全部都喺 v2.0 嘅 catalyst timeline 之外。
+
+**Mandatory 動作**(每次 refresh 必須做全部):
+
+| # | 動作 | 工具 / source |
+|---|---|---|
+| 1 | **過去 90 天嘅公司名 + 「發布」/「launch」/「release」** news search | `web_search` 多 query |
+| 2 | **過去 90 天嘅公司名 + 「major version」** (e.g. `M3` / `GLM-5` / `V3` / `Pro` / `Ultra`) | `web_search` 多 query |
+| 3 | **對手公司名 + 「對標」/「回應」/「回擊」** news search — parallel track 對手嘅 catalyst | `web_search` |
+| 4 | **過去 90 天嘅 `site:[公司官網]` latest news** — 直接 source first party | `web_search` `site:` operator |
+| 5 | **過去 90 天嘅 `site:[行業垂直 media, e.g. 36kr/ThePaper/Yahoo Finance]`** 深度報導 | `web_search` `site:` operator |
+| 6 | **GitHub / HuggingFace releases**(如果公司有開源 model)| 官網直接 check |
+| 7 | **券商研報最近 4 星期更新**(中金 / 招商 / 國信 / 東吳) | aastocks / 巨潮 |
+
+**🔴 Major Version / 新 Model Launch Detection**:
+
+**重大 signal keywords**(必須主動搵):
+- 「發布 / launched / releases / introduces」
+- 「新一代 / next-gen / major version / major update」
+- 「超越 + 對標 model name」(e.g.「SWE-Bench Pro 超越 GPT-5.5」)
+- 「完全開源 / open weights / fully open-source」
+- 「多模態 / multimodal / 1M context」
+
+**處理規則**:
+- ✅ **新 major version 發布 = MUST-ADD catalyst**,即使影響 +20% rating 都要加
+- ✅ **對手嘅對標發布 = MUST-ADD**(平行 track)
+- ✅ **報告 v(n+1) 開頭必須有「v(n) → v(n+1) Audit Trail」section** — 明確列出 missed catalysts(避免下次再 miss)
+- ✅ **如果新 major version launch 而 v(n) timeline 冇**,**必須明確標注「v(n) missed X catalyst」**
+
+**Anti-pattern**:「v1 寫嗰陣係咁,我只係 update 數字,唔需要重新 scan」— **呢個係 failure pattern**。Always comprehensive re-scan。
+
+詳細嘅具體失敗 transcript 見 `references/case-study-2026-07-MiniMax-missed-M3.md`。
+
+### P9.🔴v2.0 missed M3 catalyst — 增量 update 嘅 failure pattern(2026-07-05 真人真事)
+
+**事件**:MiniMax v2.0 報告寫嘅 catalyst timeline **完全 miss 咗 M3(2026-06-01 發布)+ 智譜 GLM-5.2(2026-06-17 開源)+ 智譜 GLM-5.1 SWE-Bench Pro 58.4**(2026 年初)。
+
+**為咩會 miss**:
+- 我由 v1 demo(只講 M2)做 incremental update 去 v2.0
+- v2.0 catalyst timeline 只係加咗 M2.7(2026-03-18)+ 解禁壓力
+- **冇做 comprehensive re-scan** — 即係冇 search「MiniMax M3」/「過去 90 天 launch」/「對手 GLM-5.2」
+- **結果**:valuation 嚴重 outdated,competitor comparison 完全 outdated
+
+**影響**:
+- ❌ MiniMax M3 SWE-Bench Pro 59.0%、超越 GPT-5.5、逼近 Opus 4.7 → **估值 catalyst 完全 miss**
+- ❌ 智譜 GLM-5.2 MIT 開源 → **5-way peer comparison 嘅 智譜 row outdated**
+- ❌ M3 嘅 1M context + native multimodal → **護城河評估 wrong(一粒星 level 嘅分別)**
+
+**User 嘅 fact-check catch 到呢個 critical omission**,然後做咗 v2.0 → v3.0 comprehensive update:
+- ✅ v3.0 加 M3 + GLM-5.2 + GLM-5.1 + SWE-Bench Pro comparison
+- ✅ v3.0 開頭有「v2.0 → v3.0 Audit Trail」明確列出 missed catalysts
+- ✅ v3.0 結論不變(🔴 不買,等 HK$100-150)— 但護城河 ★★★★(升一級)
+
+**教訓**:**任何 refresh 都必須做 comprehensive re-scan**,即使看似 incremental。**MiniMax v2.0 missed M3 嘅 failure 同 v3.0 嘅 audit trail** 就係呢個 rule 嘅實證。
+
+完整 transcript + 驗證見 `references/case-study-2026-07-MiniMax-missed-M3.md`。
 
 ---
 
@@ -251,6 +374,60 @@ Annual turnover / free float = turnover ratio
    - 中期(1-3 個月):quarterly review
    - 長期(6-12 個月):re-evaluate valuation framework
 
+### Step 9.5 — 🔴 Fact Check Self-Audit(由 智譜/MiniMax/鱘龍科技 3 個 case 提煉,2026-07-05)
+
+**寫報告完成前必須做嘅 self-audit**:
+
+#### Audit 1:未 verify 嘅關鍵數據 explicit 列出
+
+```markdown
+| 結論類型 | 基於 | 信心度 |
+|---|---|---|
+| 公司基本資料 | 3+ source verified | 高 |
+| 2025 營收 / 利潤 | financial_rigor cross-validate PASS | 高 |
+| **毛利率 / 經營現金流** | **未 verify,需查招股書** | **低** |
+| 估值倍數(P/E)| 估算,基於估算總股本 | **低** |
+```
+
+#### Audit 2:估算 vs verified 必須 explicit 分類
+
+- **verified**(✅):有任何 2 個獨立 source confirm
+- **estimate**(⚠️):基於計算但無 direct source
+- **unverified**(❌):連估算都做唔到,只是 awaiting IPO prospectus deep dive
+
+**Anti-pattern**:把估算當 verified 寫。
+
+#### Audit 3:同一 metric 多 source 嘅差異 explicit disclose
+
+如果 2 source 報唔同,例如:
+- hket: 市佔率 **36.1%**(precise)
+- 香港商報: 市佔率 **35%**(rounded)
+
+必須喺報告入面寫:
+```
+2025 市佔率:36.1%(hket precise)vs 35%(香港商報 rounded)— 採用 36.1% 為主
+```
+
+#### Audit 4:CEO / 創辦人 attribution fact-check
+
+每一個 attributed quote 必須 verify 公司 + 角色:
+- Sam Altman = **OpenAI CEO**(closed-source),**唔係 Meta Llama**
+- Mark Zuckerberg + Yann LeCun = Meta 開源路線代表
+- 智譜 CEO = **張鵬**(清華系),**唔係「對標 Meta Llama 嘅 Sam Altman」**
+
+#### Audit 5:`report_audit.py` 嘅 verdict tool raw_text strict 比較
+
+`fetched_value` 必須 strip currency prefix + 逗號 + 百分號:
+
+```
+❌ "HK$2,418"        vs "2418"       ← verdict FAIL
+✅ "HK$2,418"        vs "2418"        + 提供原始 + 純數字兩個欄位
+```
+
+完整 audit template 見 `references/case-study-2026-07-鱘龍科技-06715.md` §Fact Check Self-Audit。
+
+**Step 9.5 嘅存在原因**:智譜/MiniMax/鱘龍科技 3 份 report 嘅 fact check 失敗(由 user fact-check 揭露)— 由 0% 全 verify 到 100% PASS tool verdict 嘅漸進改善過程。如果新一個 session 直接做 IPO research,**必須**跟 Step 9.5 嘅 audit rule。
+
 ---
 
 ## 報告輸出要求
@@ -291,6 +468,125 @@ Annual turnover / free float = turnover ratio
 ## Real-world examples
 
 睇 `examples/reports/2026-07-05-智譜GLM-deep-dive.md` 嘅 v2.0 報告,展示呢個 framework 嘅完整 output。
+
+---
+
+## Pitfalls — 2026-07 Real-World 教訓(from 智譜 GLM + MiniMax deep-dive)
+
+呢啲都係 2026 年 7 月做嘅 2 個真實 deep-dive **實際遇到** 嘅 pitfall,下一個 session 必須避開:
+
+### P1.**認列營收 ≠ ARR**(致命估值錯誤)
+
+| 指標 | 智譜 2025 真實數字 | 用佢做 P/ARR 倍數嘅結果 |
+|---|---|---|
+| 認列營收(GAAP)| RMB 7.24 億 | ÷ 7.24 → **148 倍 P/S**(離譜)|
+| **API ARR**(2026-03, Q1 only)| **RMB 17 億** | ÷ 17 → **57 倍 P/ARR**(合理)|
+| **總 ARR 估算**(API + Coding + 私有化)| **RMB 25-35 億** | ÷ 30 → **30-40x P/ARR**(對標範圍)|
+
+**教訓**:**估值必須查最近披露嘅 ARR**,絕對唔可以用認列營收做 P/ARR 倍數嘅分母。
+
+### P2.**`.financial_rigor.py` 嘅單位陷阱:億 vs M vs B**
+
+**詳細見 `~/.hermes/skills/finance/financial-data/SKILL.md` §Unit Trap**。本 skill-specific 嘅兩種失敗模式:
+
+| 失敗 | 數字 | 原因 |
+|---|---|---|
+| 智譜 IPO HK$41.7 億(預期淨額)vs gross HK$43.5 億 | 4.18% diff | **混淆 gross vs net proceeds**(兩個都對,唔可以 mix)|
+| MiniMax 2026-06-25 HK$456.6 × 313M 股 = HK$1,432 億 | ✅ PASS | 但 source 報嘅係 HK$1,432 億,**唔係 free float 嘅 520 億** |
+
+**教訓**:**每次驗算前必須 clarify「呢個係 total / free float / gross / net」**,然後再對號入座。
+
+### P3.**`.report_audit.py verdict` 嘅 raw_text 嚴格字串比對**
+
+即使數值完全一樣,以下 raw_text / fetched_value 對會 verdict FAIL:
+
+```
+"HK$2,418"        vs "2418"      ← 前者有 "HK$" + ","
+"US$300"          vs "300"       ← 前者有 "US$"
+"57%"             vs "57"        ← 前者有 "%"
+"0.03%"           vs "0.03"      ← 前者有 "%"
+```
+
+**應對**:**填 `fetched_value` 時必須 strip currency prefix + 逗號 + 百分號**。如果報告 raw_text 必須保留嗰啲字符,**同時填多個欄位**:`fetched_value_raw` (= 同 raw_text) + `fetched_value_num` (= 純數字)。完整案例見 `references/case-study-2026-07-智譜GLM.md` §報告抽檢。
+
+### P4.**4 大師 quotes 容易誤導讀者為真實 quote**
+
+我喺 demo report 寫過:
+```
+> **巴菲特**:「呢盤生意嘅護城河我睇得到⋯」
+```
+讀者可能誤以為真實 quote。**必須加 disclaimer**:
+
+```markdown
+> ⚠️ **Disclaimer**: 以下「巴菲特 / 芒格 / 段永平 / 李錄」嘅引言係
+> **AI 模擬嘅「佢哋可能會點講」風格點評**,**唔係真實 quote**。
+> 四位大師本人從未對呢間公司發表過公開言論。如要做真實 quote,
+> 必須查 4 位嘅公開訪問、年報、寫作。
+```
+
+**教訓**:**任何 4-master framework 嘅 output,都必須係引言段加呢段 disclaimer**(其他 3 個 master quotes skills 都應該 echo 呢個 pattern)。
+
+### P5.**MiniMax 「-68%」vs「-70.2%」嘅 anchor 效應**
+
+我之前 demo 寫嘅係「-68%」基於 HK$1,330 → HK$427。但實際最新數字係:
+- **HK$1,330 → HK$396(2026-07-04) = -70.2%**
+- 仲衰過我 demo 寫嘅 -68%
+
+**教訓**:**任何 drawn-down 計算都用最新一日 close,而非「典型 / 預估」數字**。
+
+### P6.**Profitability framework 既 net loss vs adjusted loss**
+
+| 指標 | 智譜 | MiniMax |
+|---|---|---|
+| 認列淨虧損(GAAP)| RMB 47.18 億 | US$XXX(未見)|
+| **經調整淨虧損(Non-GAAP)**| **RMB 31.82 億** | **US$250.9M** |
+| 用呢個做 ÷ cash → runway | 2.5 年(2025-09 估算)| 5.7 年(2025-09 估算)|
+
+**教訓**:**runway 計採用經調整淨虧損(Non-GAAP)做分母**。但同時報埋 GAAP 虧損做 reference。
+
+### P7.**創辦人 / CEO attribution 易混淆**
+
+我之前 demo 寫過:
+> 「決策風格:技術深度型 + 開源信仰派(對標 Meta Llama 嘅 Sam Altman)」
+
+**Sam Altman = OpenAI CEO**,OpenAI 係 **closed-source**,從來唔係「對標 Meta Llama 嘅開源路線」。Meta Llama 嘅代表人物係 **Mark Zuckerberg + Yann LeCun**,OpenAI 同 Meta 係 AI 開源/閉源嘅兩極。
+
+**教訓**:**任何 CEO attribution 寫之前,fact-check 至少 2 個 source**(Wikipedia + 公司官網 + 招股書)。
+
+### P8.**v1 → v2 refresh嘅 systematic trigger**
+
+唔係每次都要做 full refresh(v1 → v2 重做所有 9 step),**輕量級 trigger** 包括:
+
+| Trigger | 動作 | Token cost |
+|---|---|---|
+| **股價變化 ±20% from v1 baseline** | 重做 module 7(估值)| ~3k |
+| **新 catalyst(IPO 後新嘅 material event)**| 加到 timeline(無需重做) | ~1k |
+| **對標公司估值變化(OpenAI / Anthropic / DeepSeek)**| 重做 module 4 + 7 | ~5k |
+| **行內 structural change**(出口管制 / 大模型新法)| 重做 module 6 + 8 | ~5k |
+| **季度業績出爐** | 重做 module 1 + 3 + 7 | ~10k |
+| **超過 6 個月無 refresh** | **FULL v1 → v2.0 reset + Step 6.5 comprehensive re-scan** | ~40k |
+
+**重要**:任何「輕量 trigger」(股價 / 新 catalyst / 對標 / 行業)即使看似 incremental,都**必須**跟 Step 6.5 comprehensive re-scan rule(see Step 6.5)— incremental-only 更新係 MiniMax v2.0 missed M3 嘅失敗 pattern。
+
+**工具**:`scripts/check-v2-refresh.py` 自動偵測 trigger(輸入 v1 baseline data)。
+
+---
+
+## Support Files
+
+本 skill 嘅深入細節喺以下 files:
+
+| File | 用途 |
+|---|---|
+| `references/case-study-2026-07-智譜GLM.md` | 智譜 GLM 完整 v1 → v2 case study,含具體驗算失敗 / 修正 |
+| `references/case-study-2026-07-MiniMax.md` | MiniMax v2.0 case study,展示流通量風險 -70% 真實 outcome |
+| `references/case-study-2026-07-MiniMax-missed-M3.md` | **🔴 MiniMax v2.0 missed M3 catalyst 嘅 failure transcript** — Step 6.5 嘅存在原因 |
+| `references/case-study-2026-07-鱘龍科技-06715.md` | **🔴 鱘龍科技 case — non-AI industry test,啟發 Step 0 + 1.5 + 9.5 三個 critical skill section**(Industry-specific framework + Multi-source fact table + Fact check self-audit) |
+| `templates/ipo-deep-dive-template.md` | 起始 template(copy + modify) |
+| `scripts/check-v2-refresh.py` | 自動偵測 v1 → v2 refresh trigger |
+| `scripts/fetch-financial-data.py` | 程序化 web search + financial_rigor wrapper |
+
+**主 SKILL.md 係 framework + pitfalls**,**references/ 係具體 case study details**(唔重複 SKILL.md 內容),**templates/ 同 scripts/ 係 reusable artifacts**。
 
 ---
 

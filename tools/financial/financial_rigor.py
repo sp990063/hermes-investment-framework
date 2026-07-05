@@ -281,6 +281,187 @@ def cmd_three_scenario(args) -> int:
 
 
 # ---------------------------------------------------------------------------
+# three-scenario-pe (P/E-based, for profitable companies)
+# ---------------------------------------------------------------------------
+def cmd_three_scenario_pe(args) -> int:
+    """Bull/base/bear P/E-based price targets for profitable companies.
+
+    Use this INSTEAD of `three-scenario` when the company is profitable
+    (positive EPS), e.g. consumer / financial / traditional manufacturing.
+    For loss-making companies (AI / biotech / early-stage), use `three-scenario`
+    with P/ARR framework instead.
+
+    Logic: target_price = current_eps × (1+growth)^years × exit_pe
+
+    Example:
+        # 鱘龍科技 (06715.HK) — profitable luxury food
+        python3 financial_rigor.py three-scenario-pe \\
+          --price 114 --eps 2.20 --shares 163 \\
+          --growth 0.18 0.10 0.05 \\
+          --pe 35 25 18 --years 3 --currency HKD
+    """
+    try:
+        price = _to_decimal(args.price)
+        eps = _to_decimal(args.eps)
+        shares_millions = _to_decimal(args.shares)  # in millions
+        g_bull = _to_decimal(args.growth[0])
+        g_base = _to_decimal(args.growth[1])
+        g_bear = _to_decimal(args.growth[2])
+        pe_bull = _to_decimal(args.pe[0])
+        pe_base = _to_decimal(args.pe[1])
+        pe_bear = _to_decimal(args.pe[2])
+        years = int(args.years)
+        currency = args.currency.upper()
+    except (ValueError, InvalidOperation) as e:
+        print(f"❌ Input error: {e}", file=sys.stderr)
+        return 2
+
+    if years <= 0:
+        print("❌ --years must be positive", file=sys.stderr)
+        return 2
+
+    if eps <= 0:
+        print(f"⚠️ EPS is zero or negative ({eps}). For loss-making companies, use `three-scenario` with P/ARR framework instead.", file=sys.stderr)
+        return 2
+
+    sym = "$" if currency == "USD" else "HK$" if currency == "HKD" else currency + " "
+
+    # Future EPS = current EPS × (1+g)^years
+    def future_eps(growth: Decimal) -> Decimal:
+        mult = (ONE + growth) ** years
+        return (eps * mult).quantize(D("0.0001"), rounding=ROUND_HALF_EVEN)
+
+    def target_price(future: Decimal, pe: Decimal) -> Decimal:
+        return (future * pe).quantize(D("0.01"), rounding=ROUND_HALF_EVEN)
+
+    scenarios = {
+        "bull":  (g_bull, pe_bull),
+        "base":  (g_base, pe_base),
+        "bear":  (g_bear, pe_bear),
+    }
+
+    results = []
+    for label, (g, pe) in scenarios.items():
+        f_eps = future_eps(g)
+        t_price = target_price(f_eps, pe)
+        upside = ((t_price - price) / price * HUNDRED) if price > 0 else None
+        results.append({
+            "scenario": label,
+            "growth_pct": f"{g * HUNDRED:.2f}%",
+            "exit_pe": str(pe),
+            "future_eps": str(f_eps),
+            "target_price": str(t_price),
+            "upside_pct": f"{upside:.2f}%" if upside is not None else "n/a",
+        })
+
+    # Also compute implied current P/E and P/B (if book value provided)
+    current_pe = (price / eps).quantize(D("0.01"), rounding=ROUND_HALF_EVEN) if eps > 0 else None
+
+    out = {
+        "current_price": str(price),
+        "current_eps": str(eps),
+        "current_pe": str(current_pe) if current_pe else "n/a (loss-making)",
+        "shares_millions": str(shares_millions),
+        "years": years,
+        "currency": currency,
+        "scenarios": results,
+        "use_case": "profitable company (positive EPS) — for loss-making use `three-scenario` with P/ARR",
+    }
+    print(json.dumps(out, ensure_ascii=False, indent=2))
+    print(f"\nCurrent price: {sym}{price}", file=sys.stderr)
+    print(f"Current EPS:   {eps}", file=sys.stderr)
+    print(f"Current P/E:   {current_pe}x", file=sys.stderr)
+    print(f"Horizon:       {years} years", file=sys.stderr)
+    for r in results:
+        print(f"  [{r['scenario'].upper():4s}] growth={r['growth_pct']:>7s}  exit PE={r['exit_pe']:>5s}  →  target {sym}{r['target_price']:>10s}  ({r['upside_pct']})", file=sys.stderr)
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# three-scenario-pb (P/B-based, for financial companies)
+# ---------------------------------------------------------------------------
+def cmd_three_scenario_pb(args) -> int:
+    """Bull/base/bear P/B-based price targets for financial / bank / insurance.
+
+    Use this for financial companies where P/B is more relevant than P/E
+    (banks, insurers, brokers). Logic: target_price = current_bvps × (1+g)^years × exit_pb
+    """
+    try:
+        price = _to_decimal(args.price)
+        bvps = _to_decimal(args.bvps)
+        shares_millions = _to_decimal(args.shares)
+        g_bull = _to_decimal(args.growth[0])
+        g_base = _to_decimal(args.growth[1])
+        g_bear = _to_decimal(args.growth[2])
+        pb_bull = _to_decimal(args.pb[0])
+        pb_base = _to_decimal(args.pb[1])
+        pb_bear = _to_decimal(args.pb[2])
+        years = int(args.years)
+        currency = args.currency.upper()
+    except (ValueError, InvalidOperation) as e:
+        print(f"❌ Input error: {e}", file=sys.stderr)
+        return 2
+
+    if years <= 0:
+        print("❌ --years must be positive", file=sys.stderr)
+        return 2
+
+    if bvps <= 0:
+        print(f"⚠️ BVPS is zero or negative ({bvps}).", file=sys.stderr)
+        return 2
+
+    sym = "$" if currency == "USD" else "HK$" if currency == "HKD" else currency + " "
+
+    def future_bvps(growth: Decimal) -> Decimal:
+        mult = (ONE + growth) ** years
+        return (bvps * mult).quantize(D("0.0001"), rounding=ROUND_HALF_EVEN)
+
+    def target_price(future: Decimal, pb: Decimal) -> Decimal:
+        return (future * pb).quantize(D("0.01"), rounding=ROUND_HALF_EVEN)
+
+    scenarios = {
+        "bull":  (g_bull, pb_bull),
+        "base":  (g_base, pb_base),
+        "bear":  (g_bear, pb_bear),
+    }
+
+    results = []
+    for label, (g, pb) in scenarios.items():
+        f_bvps = future_bvps(g)
+        t_price = target_price(f_bvps, pb)
+        upside = ((t_price - price) / price * HUNDRED) if price > 0 else None
+        results.append({
+            "scenario": label,
+            "growth_pct": f"{g * HUNDRED:.2f}%",
+            "exit_pb": str(pb),
+            "future_bvps": str(f_bvps),
+            "target_price": str(t_price),
+            "upside_pct": f"{upside:.2f}%" if upside is not None else "n/a",
+        })
+
+    current_pb = (price / bvps).quantize(D("0.01"), rounding=ROUND_HALF_EVEN) if bvps > 0 else None
+
+    out = {
+        "current_price": str(price),
+        "current_bvps": str(bvps),
+        "current_pb": str(current_pb) if current_pb else "n/a",
+        "shares_millions": str(shares_millions),
+        "years": years,
+        "currency": currency,
+        "scenarios": results,
+        "use_case": "financial / bank / insurance company — P/B-based valuation",
+    }
+    print(json.dumps(out, ensure_ascii=False, indent=2))
+    print(f"\nCurrent price: {sym}{price}", file=sys.stderr)
+    print(f"Current BVPS:  {bvps}", file=sys.stderr)
+    print(f"Current P/B:   {current_pb}x", file=sys.stderr)
+    print(f"Horizon:       {years} years", file=sys.stderr)
+    for r in results:
+        print(f"  [{r['scenario'].upper():4s}] growth={r['growth_pct']:>7s}  exit P/B={r['exit_pb']:>5s}  →  target {sym}{r['target_price']:>10s}  ({r['upside_pct']})", file=sys.stderr)
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # benford
 # ---------------------------------------------------------------------------
 def cmd_benford(args) -> int:
@@ -395,6 +576,26 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--data", help="JSON list of numbers")
     s.add_argument("--file", help="Path to text file with one number per token")
 
+    # three-scenario-pe (P/E-based, for profitable companies)
+    s = sub.add_parser("three-scenario-pe", help="Bull/base/bear P/E-based price targets (profitable companies)")
+    s.add_argument("--price", required=True)
+    s.add_argument("--eps", required=True, help="Current EPS (positive)")
+    s.add_argument("--shares", required=True, help="Total shares (in millions)")
+    s.add_argument("--growth", nargs=3, required=True, help="Bull base bear EPS growth (decimal, e.g. 0.18 0.10 0.05)")
+    s.add_argument("--pe", nargs=3, required=True, help="Bull base bear exit PE (e.g. 35 25 18)")
+    s.add_argument("--years", required=True)
+    s.add_argument("--currency", required=True, choices=["USD", "HKD", "CNY", "TWD", "JPY", "EUR"])
+
+    # three-scenario-pb (P/B-based, for financial companies)
+    s = sub.add_parser("three-scenario-pb", help="Bull/base/bear P/B-based price targets (financial companies)")
+    s.add_argument("--price", required=True)
+    s.add_argument("--bvps", required=True, help="Book value per share (positive)")
+    s.add_argument("--shares", required=True, help="Total shares (in millions)")
+    s.add_argument("--growth", nargs=3, required=True, help="Bull base bear BVPS growth (decimal)")
+    s.add_argument("--pb", nargs=3, required=True, help="Bull base bear exit P/B")
+    s.add_argument("--years", required=True)
+    s.add_argument("--currency", required=True, choices=["USD", "HKD", "CNY", "TWD", "JPY", "EUR"])
+
     return p
 
 
@@ -406,6 +607,8 @@ def main() -> int:
         "verify-valuation": cmd_verify_valuation,
         "cross-validate": cmd_cross_validate,
         "three-scenario": cmd_three_scenario,
+        "three-scenario-pe": cmd_three_scenario_pe,
+        "three-scenario-pb": cmd_three_scenario_pb,
         "benford": cmd_benford,
     }
     return dispatch[args.cmd](args)
