@@ -8,12 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **`ipo-catalyst-analysis` skill** — specialised framework for newly-listed (< 12 months) + catalyst-driven + low free float IPO stocks. Based on `investment-research` but adds: catalyst timeline analysis, P/ARR three-scenario valuation, free float risk premium, 5-way peer comparison, v1 → v2.0 correction pattern. See `skills/ipo-catalyst-analysis/SKILL.md` and `examples/reports/2026-07-05-智譜GLM-deep-dive.md` for reference output.
+- **`ipo-catalyst-analysis` skill** — specialised framework for newly-listed (< 12 months) + catalyst-driven + low free float IPO stocks. Based on `investment-research` but adds: catalyst timeline analysis, P/ARR three-scenario valuation, free float risk premium, 5-way peer comparison, v1 → v2.0 correction pattern. See `skills/ipo-catalyst-analysis/SKILL.md` for full spec.
+- **`examples/reports/2026-07-05-MiniMax-deep-dive-v3.md`** — real-world case study for `ipo-catalyst-analysis` skill. Demonstrates M3 catalyst correction (v2.0 missed M3 launch 2026-06-01, v3.0 added) and proposed skill improvements (Step 2.5 Comprehensive News Scan, Step 6.5 Major Version Detection, Step 7.5 Competitor Parallel Tracking, Step 9.5 Audit Trail).
 
 ### Fixed
 - Example report (`examples/reports/2026-07-05-智譜GLM投資研究報告.md`) fact check:
   - Line 195: Sam Altman → Mark Zuckerberg / Yann LeCun (Meta Llama team, not OpenAI CEO)
   - Lines 348-356: Added "AI 模擬" disclaimer to investment master quotes (Buffett / Munger / Duan / Li Lu quotes are AI-simulated perspectives, not real attributions)
+
+### Skill v1.1 Improvements (proposed based on MiniMax v3.0 lesson)
+- **Step 2.5 Comprehensive News Scan** — every refresh does a fresh scan, not incremental update
+- **Step 6.5 Major Version Detection** — model major version changes must be flagged within 24 hours
+- **Step 7.5 Competitor Parallel Tracking** — competitor model versions parallel tracked
+- **Step 9.5 v(n) → v(n+1) Audit Trail** — every correction must explicitly list missed catalysts
 
 ## [1.0.0] - 2026-07-05
 
