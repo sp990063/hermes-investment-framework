@@ -426,7 +426,127 @@ Critical 警示:
 
 完整 audit template 見 `references/case-study-2026-07-鱘龍科技-06715.md` §Fact Check Self-Audit。
 
-**Step 9.5 嘅存在原因**:智譜/MiniMax/鱘龍科技 3 份 report 嘅 fact check 失敗(由 user fact-check 揭露)— 由 0% 全 verify 到 100% PASS tool verdict 嘅漸進改善過程。如果新一個 session 直接做 IPO research,**必須**跟 Step 9.5 嘅 audit rule。
+#### Audit 6 — 🔴 Stock-price fact-check (CRITICAL, from 2026-07-05 multi-stock batch failure)
+
+**Trigger**:任何 deep-dive / refresh / earnings review / news pulse 報告入面**寫到「現時股價 / 當前股價 / HK$X」**。
+
+**Hard requirement**:
+
+1. **必須 2+ source verify** 當下股價,**唔可以靠 subagent 自己報**:
+   - Source A: Investing.com (例 `https://www.investing.com/equities/xiaomi`)
+   - Source B: Yahoo Finance 或 Bloomberg (例 `https://finance.yahoo.com/quote/1810.HK/`)
+   - 兩 source 衝突 → 用 **LOWER**(保守)
+2. **週末/假期**:用上一個交易日 close(例 2026-07-05 Saturday → 用 2026-07-03 Friday close)
+3. **報告入面 explicit 寫 source URL**(e.g.「股價 HK$21.64 [Investing.com 2026-07-01](url) + [雪球](url)」)
+4. **Subagent delegation prompt 必須明確列呢個 requirement**(否則 systematic hallucinate high)
+
+**Failure mode 真實 transcript**(2026-07-05 4 隻中概股 batch):
+
+| 股票 | Subagent 報 | 真實(2 source verify)| Error 倍數 |
+|---|---|---|---|
+| 騰訊 00700 | HK$582.90 | HK$580 | ✅ +0.5% |
+| **小米 01810** | **HK$68.60** | **HK$21.64** | 🔴 **3.17× over** |
+| **阿里 09988** | **HK$149** | **HK$117** | 🔴 **1.27× over** |
+| 百度 09888 | subagent 仲跑緊 | HK$89.70-90.16 | ❓ |
+
+**Why subagents hallucinate**:subagent 訓練 data 截止日多數早過最新股價,hallucinate 偏向 high(可能用咗 N-month high 而非 current)。**修正**:**永遠唔可以信任 subagent raw output 嘅 stock price**,必須 fact-check from live source。
+
+**Corrective template**(subagent prompt 必加):
+
+```
+⚠️ CRITICAL: 必須先 fact-check 現時股價 from ≥2 source (Investing.com + Yahoo Finance)。
+周末/假期用上一交易日 close。Subagent 自己報嘅價錢 systematic hallucinate HIGH(2026-07-05 batch: 
+小米 HK$68.60 vs 真實 HK$21.64,3.17× over)。報告入面 explicit 列 source URL。兩 source 衝突用 LOWER。
+```
+
+**Anti-pattern**:「subagent 寫咗 HK$68.60 就用 HK$68.60」— 呢個係 critical failure,即使 subagent 自己 fact-check 過都唔可以信,因為 subagent 嘅 fact-check 都可能 hallucinate。
+
+完整 failure transcript 見 `references/case-study-2026-07-multi-stock-batch-price-hallucination.md`。
+
+**Step 9.5 嘅存在原因**:智譜/MiniMax/鱘龍科技 3 份 report 嘅 fact check 失敗(由 user fact-check 揭露)— 由 0% 全 verify 到 100% PASS tool verdict 嘅漸進改善過程。**Stock price hallucination 係 Step 9.5 嘅第 6 個 audit rule**,由 2026-07-05 multi-stock batch failure 提煉。如果新一個 session 直接做 IPO research,**必須**跟全部 6 個 audit rule。
+
+---
+
+#### Audit 7 — 🔴 P/E (Trailing + Forward) Fact-Check (CRITICAL, from 2026-07-05 5 隻中概股 batch failure)
+
+**Trigger**:任何 deep-dive / refresh / earnings review / news pulse 報告入面**寫到「P/E 倍數」「估值倍數」**。
+
+**慘痛教訓**(2026-07-05):5 隻中概股 P/E 估算 100% 錯(4/5 結論完全反轉):
+
+| 股票 | 估算 P/E | Yahoo Finance 真實 | 結論反轉? |
+|---|---|---|---|
+| 騰訊 0700 | 23.39x | **15.48x** | ✅ YES(deep value)|
+| 小米 1810 | 9.41x | **12.76x** | ✅ YES(合理非 deep value)|
+| 百度 9888 | 5.49x | **79.28x** | ✅ YES(偏高非 deep value)|
+| 阿里 9988 | 5.87x | **14.83x** | ✅ YES(接近 deep value 非超平)|
+| Lenovo 0992 | 19.63x | **19.53x** | ⚠️ 接近啱 |
+
+**Hard requirement**:
+
+1. **必須用 Yahoo Finance Valuation Measures table 即時 verify**(唔可以自己估算):
+   ```
+   https://finance.yahoo.com/quote/{ticker}.HK/key-statistics/
+   ```
+   即時 verify 5 個 metric:
+   - **Market Cap**(HKD)
+   - **Trailing P/E** = 過去 4 季 **GAAP** EPS basis
+   - **Forward P/E** = 分析師共識未來 12 個月 EPS basis
+   - **PEG Ratio (5yr expected)**
+   - **P/Sales**
+   - **P/Book**(如有)
+
+2. **不可以**用以下方法估算 P/E:
+   - ❌ 單季 EPS × 4 = 年度化 EPS → 再除股價(對 GAAP-loss 公司錯 14x)
+   - ❌ Investing.com SERP snippet(經常滯後)
+   - ❌ Subagent 自己報嘅 P/E(systematic hallucinate)
+   - ❌ 我自己估算嘅 EPS
+
+3. **GAAP vs Non-GAAP 必須 explicit 分開 disclose**:
+   - Yahoo Finance Trailing P/E = **GAAP TTM basis**
+   - Q1 2026 Non-GAAP EPS RMB 18.55 **唔可以直接** 用 annualized 估算 P/E
+   - 如要用 Non-GAAP EPS 計算,**必須 disclose** 「Non-GAAP basis」並用 Forward P/E 對比
+
+**Report 內必須 explicit 寫**:
+```
+Trailing P/E: 15.48x (Yahoo Finance 7/3 close)
+Forward P/E: 12.32x (Yahoo Finance 7/3 close)
+Source: https://finance.yahoo.com/quote/0700.HK/key-statistics/
+```
+
+**Anti-pattern**:「估算 P/E 9.41x → 直接寫 deep value 結論」— **呢個係 critical failure,4/5 結論會反轉**。
+
+---
+
+#### Audit 8 — 🔴 P/Sales, Market Cap, 52-Week Range Fact-Check (CRITICAL, new 2026-07-05)
+
+**Trigger**:報告入面**寫到「P/Sales」「市值」「52-week high/low」**。
+
+**Hard requirement**: 同樣必須 Yahoo Finance Valuation Measures table 即時 verify,不可估算。
+
+**Why 加入呢個 audit**:就算 P/E 估算啱,Market Cap 估算都可能錯(例如股價估算錯 → Market Cap 跟住錯)。
+
+---
+
+#### PEG Ratio 解讀指引(2026-07-05 新加)
+
+PEG = Trailing P/E / 5-year expected growth rate
+
+| PEG | 解讀 | 案例 |
+|---|---|---|
+| **< 0.5** | 🔥 **deep value + 未 priced in growth** | 阿里 PEG 0.39 = 5 隻入面最低,真 value |
+| 0.5 - 1.0 | 🟢 合理偏低(growth partially priced in)| 騰訊 PEG 1.26、百度 PEG 0.84 |
+| 1.0 - 2.0 | 🟡 合理(growth 已 priced in)| 小米 PEG 1.90 = Q2 業績 +33%/+75% 已 priced |
+| > 2.0 | 🔴 估值過度樂觀 | (暫無 case) |
+
+**Critical insight**:**PEG 比 P/E 更能反映低估**:
+- 阿里 PEG 0.39 + P/E 14.83x = 真正低估(市場未充分反映 Qwen + 淘寶閃購)
+- 小米 PEG 1.90 + P/E 12.76x = 表面低但已 priced in(雖然 P/E 似平)
+
+---
+
+**Step 9.5 嘅存在原因(updated 2026-07-05)**:智譜/MiniMax/鱘龍科技 + **5 隻中概股 P/E 100% 錯判** 嘅 failure 提煉。如果新一個 session 直接做 IPO research / 中概股 research,**必須**跟全部 8 個 audit rule(Audit 1-8)。
+
+📎 詳見 `references/pe-metric-failure-2026-07-05.md`(亦 in `financial-data` skill) — 完整 5 隻中概股 discrepancy table + 永久 fix rule + 6 lessons learned。
 
 ---
 
@@ -465,9 +585,13 @@ Critical 警示:
 
 ---
 
-## Real-world examples
+## Real-world examples + Case Studies
 
 睇 `examples/reports/2026-07-05-智譜GLM-deep-dive.md` 嘅 v2.0 報告,展示呢個 framework 嘅完整 output。
+
+**補充 case studies**(在 `references/`):
+- `references/case-study-2026-07-ai-大模型-IPO.md` — 智譜 GLM + MiniMax 對比,展示 P/ARR framework + multi-round refresh pattern
+- `references/case-study-2026-07-鱘龍科技-06715.md` — 鱘龍科技(consumer/profitable)展示 `three-scenario-pe` framework + multi-source fact-table
 
 ---
 
@@ -580,8 +704,10 @@ Critical 警示:
 |---|---|
 | `references/case-study-2026-07-智譜GLM.md` | 智譜 GLM 完整 v1 → v2 case study,含具體驗算失敗 / 修正 |
 | `references/case-study-2026-07-MiniMax.md` | MiniMax v2.0 case study,展示流通量風險 -70% 真實 outcome |
-| `references/case-study-2026-07-MiniMax-missed-M3.md` | **🔴 MiniMax v2.0 missed M3 catalyst 嘅 failure transcript** — Step 6.5 嘅存在原因 |
+| `references/case-study-2026-07-ai-大模型-IPO.md` | 智譜 GLM + MiniMax 對比,展示 P/ARR framework + multi-round refresh pattern |
 | `references/case-study-2026-07-鱘龍科技-06715.md` | **🔴 鱘龍科技 case — non-AI industry test,啟發 Step 0 + 1.5 + 9.5 三個 critical skill section**(Industry-specific framework + Multi-source fact table + Fact check self-audit) |
+| `references/case-study-2026-07-multi-stock-batch-price-hallucination.md` | **🔴 4 隻中概股 subagent 報股價 systematic hallucinate 嘅 failure transcript**(Stock price fact-check rule 嘅由來) |
+| `references/pe-metric-failure-2026-07-05.md` | **🔴 5 隻中概股 P/E 100% 錯判嘅 discrepancy table + 永久 fix rule**(Audit 7+8 嘅由來)。Same file in `financial-data` skill |
 | `templates/ipo-deep-dive-template.md` | 起始 template(copy + modify) |
 | `scripts/check-v2-refresh.py` | 自動偵測 v1 → v2 refresh trigger |
 | `scripts/fetch-financial-data.py` | 程序化 web search + financial_rigor wrapper |
@@ -595,6 +721,7 @@ Critical 警示:
 | Skill | 配合方式 |
 |---|---|
 | `investment-research` | 本 skill 係佢嘅 specialised extension,**唔可以並行用** |
+| `investment-team` | **Stock-price hallucination rule(Pitfall 4) + Delegation ID lost rule(Pitfall 5)** 同步套用 — 即使 IPO skill,任何 subagent 報股價都要 fact-check |
 | `quality-screen` | 用嚟做 IPO 前嘅 quality screen,**IPO 前嘅 screening** |
 | `private-company-research` | 對標未上市公司(OpenAI / Anthropic)時,睇下 `private-company-research` 嘅 framework |
 | `news-pulse` | 持續監察 catalyst,特別係 Round 2 / Round 3 refresh |
